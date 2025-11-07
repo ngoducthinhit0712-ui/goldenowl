@@ -11,4 +11,4 @@ jobs:
     
     steps:
       - name: List Project Directory
-        run: ls -la /project
+        run: ls -la /projects
