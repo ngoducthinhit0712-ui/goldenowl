@@ -1,12 +1,14 @@
 name: Simple Test
-   on:
-     push:
-       branches: [ main ]
-     workflow_dispatch:
-   jobs:
-     test:
-       runs-on: self-hosted
-       
-       steps:
-         - name: List Project Directory
-           run: ls -la /project
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: self-hosted
+    
+    steps:
+      - name: List Project Directory
+        run: ls -la /projects
