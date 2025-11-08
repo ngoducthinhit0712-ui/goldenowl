@@ -35,4 +35,5 @@ jobs:
       - name: Deploy Application
         run: |
           echo "Deploying application..."
+          cp -r target/ /datas/shoeshop/
           nohup java -jar target/shoe-ShoppingCart-0.0.1-SNAPSHOT.jar 2>&1 &
