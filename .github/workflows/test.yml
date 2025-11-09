@@ -6,8 +6,7 @@ on:
     branches: [develop, staging]
     
 env:
-  #domain/project-registry/project-github:tag_commit
-  DOCKER_IMAGE: ${{vars.PROJECT_NAME}}
+  # Không đặt DOCKER_IMAGE ở đây vì chúng ta cần giá trị động của SHA commit
   DOCKER_CONTAINER: ${{vars.CI_PROJECT}}
   
 jobs:
@@ -15,6 +14,19 @@ jobs:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v3
+      
+      # Bước mới: Lấy SHA commit ngắn
+      - name: Get short SHA
+        id: short-sha
+        run: echo "SHORT_SHA=$(echo ${GITHUB_SHA} | cut -c1-7)" >> $GITHUB_ENV
+      
+      # Bước mới: Đặt tên image với tag dựa trên SHA commit
+      - name: Set Docker image name
+        run: |
+          BRANCH_NAME="${{ github.ref_name }}"
+          IMAGE_WITH_TAG="${{vars.PROJECT_NAME}}:${BRANCH_NAME}_${{ env.SHORT_SHA }}"
+          echo "DOCKER_IMAGE=${IMAGE_WITH_TAG}" >> $GITHUB_ENV
+          echo "Docker image will be: ${IMAGE_WITH_TAG}"
       
       - name: Login to Docker Hub
         uses: docker/login-action@v1
@@ -34,7 +46,18 @@ jobs:
     steps: 
       - uses: actions/checkout@v3
       
-      - name: Login to Docker Hu
+      # Cần phải tạo lại biến DOCKER_IMAGE vì biến môi trường không được chia sẻ giữa các job
+      - name: Get short SHA
+        id: short-sha
+        run: echo "SHORT_SHA=$(echo ${GITHUB_SHA} | cut -c1-7)" >> $GITHUB_ENV
+      
+      - name: Set Docker image name
+        run: |
+          BRANCH_NAME="${{ github.ref_name }}"
+          IMAGE_WITH_TAG="${{vars.PROJECT_NAME}}:${BRANCH_NAME}_${{ env.SHORT_SHA }}"
+          echo "DOCKER_IMAGE=${IMAGE_WITH_TAG}" >> $GITHUB_ENV
+      
+      - name: Login to Docker Hub
         uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
