@@ -1,5 +1,4 @@
 name: GoldenOwl-DevOps-Pipeline
-
 on:
   push:
     branches: [develop, staging]
@@ -8,29 +7,35 @@ on:
     
 env:
   PROJECT_NAME: ${{ github.event.repository.name }}
-  # Lấy branch name từ GitHub context
   BRANCH_NAME: ${{ github.ref_name }}
-  SHORT_SHA: ${{ github.sha }}
-    # domain/project-registry/project-github:tag_commit
-  DOCKER_IMAGE: ${{ secrets.DOCKER_USERNAME }}/${{ github.event.repository.name }}:${{ github.ref_name }}-${{ github.sha }}
   
 jobs:
   build:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v3
+      
       - name: Set Docker image name
         run: |
+          # Lấy 7 ký tự đầu của commit SHA
           SHORT_SHA=${GITHUB_SHA:0:7}
+          # Thiết lập Docker image name với format username/project:branch-shortsha
           echo "DOCKER_IMAGE=${{ secrets.DOCKER_USERNAME }}/${{ env.PROJECT_NAME }}:${{ env.BRANCH_NAME }}-${SHORT_SHA}" >> $GITHUB_ENV
+      
+      - name: Check variables
+        run: |
+          echo "Project: ${{ env.PROJECT_NAME }}"
+          echo "Branch: ${{ env.BRANCH_NAME }}"
+          echo "Docker Image: ${{ env.DOCKER_IMAGE }}"
+      
       - name: Login to Docker Hub
         uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
+      
       - name: Build Docker image
         run: docker build -t ${{ env.DOCKER_IMAGE }} .
-      - name: Push Docker image to Docker Hub
-        run: docker push ${{ env.DOCKER_IMAGE }} 
-
       
+      - name: Push Docker image to Docker Hub
+        run: docker push ${{ env.DOCKER_IMAGE }}
