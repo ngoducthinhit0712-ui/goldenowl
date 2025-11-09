@@ -1,17 +1,39 @@
 name: GoldenOwl-DevOps-Pipeline
-
 on:
   push:
     branches: [develop, staging]
   pull_request:
     branches: [develop, staging]
-
 jobs:
   build:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v3
+      
+      - name: Check environment
+        run: |
+          echo "Current user:"
+          whoami
+          echo "Current directory:"
+          pwd
+          echo "Directory listing:"
+          ls -la
+      
       - name: Build Java Project By Maven
         run: mvn install -DskipTests=true
+      
+      - name: Verify JAR file
+        run: |
+          echo "Checking JAR file:"
+          ls -la target/
+          echo "JAR file size:"
+          du -h target/shoe-ShoppingCart-0.0.1-SNAPSHOT.jar
+      
       - name: Run Java Project
         run: echo "Server is running"
+      
+      - name: Deploy Application
+        run: |
+          echo "Deploying application..."
+          cp -r target/ /datas/shoeshop/
+          nohup java -jar target/shoe-ShoppingCart-0.0.1-SNAPSHOT.jar 2>&1 &
